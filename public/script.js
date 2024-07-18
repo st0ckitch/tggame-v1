@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const chip = document.getElementById("chip");
     const message = document.getElementById("message");
     const container = document.getElementById("game-container");
+    const containerRect = container.getBoundingClientRect();
     let isShaking = false;
     let shakeStartTime;
 
@@ -22,6 +23,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 startShake();
             }
         }
+
+        if (isShaking) {
+            const timeElapsed = (Date.now() - shakeStartTime) / 1000;
+            const newPosX = (acc.x * timeElapsed * 100) % containerRect.width;
+            const newPosY = (acc.y * timeElapsed * 100) % containerRect.height;
+
+            chip.style.left = `${newPosX}px`;
+            chip.style.top = `${newPosY}px`;
+        }
     }
 
     function startShake() {
@@ -33,7 +43,6 @@ document.addEventListener("DOMContentLoaded", () => {
         isShaking = false;
         message.textContent = "Stopped!";
         const rect = chip.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
         const middleX = containerRect.width / 2;
         const middleY = containerRect.height / 2;
 
