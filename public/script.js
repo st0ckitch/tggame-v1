@@ -1,10 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const chip = document.getElementById("chip");
+    const blackCircle = document.getElementById("black-circle");
+    const yellowCircle = document.getElementById("yellow-circle");
     const message = document.getElementById("message");
     const container = document.getElementById("game-container");
     const containerRect = container.getBoundingClientRect();
-    let isShaking = false;
-    let shakeStartTime;
+    let hasMoved = false;
 
     if (window.DeviceMotionEvent) {
         window.addEventListener('devicemotion', handleMotion);
@@ -13,50 +13,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function handleMotion(event) {
+        if (hasMoved) return;
+
         const acc = event.accelerationIncludingGravity;
-        const shakeThreshold = 15;
 
-        if (Math.abs(acc.x) > shakeThreshold || Math.abs(acc.y) > shakeThreshold || Math.abs(acc.z) > shakeThreshold) {
-            if (!isShaking) {
-                isShaking = true;
-                shakeStartTime = Date.now();
-                startShake();
-            }
-        }
+        const posX = (containerRect.width / 2) + (acc.x * 10);
+        const posY = containerRect.height - (acc.y * 10) - 50;  // Subtracting 50 to place it correctly
 
-        if (isShaking) {
-            const timeElapsed = (Date.now() - shakeStartTime) / 1000;
-            const newPosX = (acc.x * timeElapsed * 100) % containerRect.width;
-            const newPosY = (acc.y * timeElapsed * 100) % containerRect.height;
-
-            chip.style.left = `${newPosX}px`;
-            chip.style.top = `${newPosY}px`;
-        }
+        moveBlackCircle(posX, posY);
+        checkWinCondition(posX, posY);
+        hasMoved = true;
     }
 
-    function startShake() {
-        message.textContent = "Shaking...";
-        setTimeout(stopShake, 2000);
+    function moveBlackCircle(x, y) {
+        blackCircle.style.left = `${x}px`;
+        blackCircle.style.top = `${y}px`;
     }
 
-    function stopShake() {
-        isShaking = false;
-        message.textContent = "Stopped!";
-        const rect = chip.getBoundingClientRect();
-        const middleX = containerRect.width / 2;
-        const middleY = containerRect.height / 2;
+    function checkWinCondition(x, y) {
+        const blackRect = blackCircle.getBoundingClientRect();
+        const yellowRect = yellowCircle.getBoundingClientRect();
 
-        if (Math.abs(rect.left + rect.width / 2 - middleX) < 20 && Math.abs(rect.top + rect.height / 2 - middleY) < 20) {
+        if (
+            blackRect.left < yellowRect.right &&
+            blackRect.right > yellowRect.left &&
+            blackRect.top < yellowRect.bottom &&
+            blackRect.bottom > yellowRect.top
+        ) {
             message.textContent = "You Win!";
         } else {
             message.textContent = "Try Again!";
         }
-
-        resetChipPosition();
-    }
-
-    function resetChipPosition() {
-        chip.style.transition = "transform 2s";
-        chip.style.transform = "translate(-50%, -50%)";
     }
 });
