@@ -16,13 +16,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (hasMoved) return;
 
         const acc = event.accelerationIncludingGravity;
+        const shakeThreshold = 5;
 
-        const posX = (containerRect.width / 2) + (acc.x * 10);
-        const posY = containerRect.height - (acc.y * 10) - 50;  // Subtracting 50 to place it correctly
+        if (Math.abs(acc.x) > shakeThreshold || Math.abs(acc.y) > shakeThreshold || Math.abs(acc.z) > shakeThreshold) {
+            const posX = (containerRect.width / 2) + (acc.x * 5);
+            const posY = containerRect.height - (acc.y * 5) - 50;  // Subtracting 50 to place it correctly
 
-        moveBlackCircle(posX, posY);
-        checkWinCondition(posX, posY);
-        hasMoved = true;
+            moveBlackCircle(posX, posY);
+            checkWinCondition(posX, posY);
+            hasMoved = true;
+        }
     }
 
     function moveBlackCircle(x, y) {
@@ -45,4 +48,10 @@ document.addEventListener("DOMContentLoaded", () => {
             message.textContent = "Try Again!";
         }
     }
+
+    // Initialize the black circle at the bottom center
+    const initPosX = containerRect.width / 2 - 25;  // Center horizontally, subtracting half the circle's width
+    const initPosY = containerRect.height - 50;  // Position at bottom, subtracting the circle's height
+    blackCircle.style.left = `${initPosX}px`;
+    blackCircle.style.top = `${initPosY}px`;
 });
