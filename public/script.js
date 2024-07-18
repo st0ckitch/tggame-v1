@@ -6,7 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById("game-container");
     const containerRect = container.getBoundingClientRect();
     let hasMoved = false;
+    let moveTimer = null;
     let motionSupported = false;
+    let orientationSupported = false;
 
     // Check for DeviceMotionEvent support
     if (window.DeviceMotionEvent) {
@@ -16,40 +18,45 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("DeviceMotionEvent is not supported on your device.");
     }
 
+    // Check for DeviceOrientationEvent support
+    if (window.DeviceOrientationEvent) {
+        orientationSupported = true;
+        window.addEventListener('deviceorientation', handleOrientation);
+    }
+
     function handleMotion(event) {
         if (hasMoved) return;
 
         const acc = event.accelerationIncludingGravity;
-        const shakeThreshold = 12; // Adjust as needed
+        const shakeThreshold = 10;
 
         if (Math.abs(acc.x) > shakeThreshold || Math.abs(acc.y) > shakeThreshold || Math.abs(acc.z) > shakeThreshold) {
             hasMoved = true;
-            let power = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z) - 9.8; // Subtracting gravity
-            moveBlackCircle(power);
+            message.textContent = "Move the black circle!";
+            moveTimer = setTimeout(() => {
+                checkWinCondition();
+                resetButton.style.display = "block";
+            }, 3000);
         }
     }
 
-    function moveBlackCircle(power) {
-        const duration = 3000; // 3 seconds
-        const startX = parseFloat(getComputedStyle(blackCircle).left);
-        const endX = containerRect.width - 50; // End position just before container edge
+    function handleOrientation(event) {
+        if (!hasMoved) return;
 
-        const startTime = performance.now();
-        function animateCircle(currentTime) {
-            const elapsedTime = currentTime - startTime;
-            const progress = Math.min(elapsedTime / duration, 1); // Limit progress to 1
-            const newX = startX + (endX - startX) * progress * (power / 15); // Adjust 15 for sensitivity
+        const { beta, gamma } = event; // beta is for front-back, gamma is for left-right
 
-            blackCircle.style.left = `${newX}px`;
+        let posX = (gamma / 90) * (containerRect.width / 2);
+        let posY = (beta / 90) * (containerRect.height / 2);
 
-            if (progress < 1) {
-                requestAnimationFrame(animateCircle);
-            } else {
-                checkWinCondition();
-            }
-        }
+        posX = Math.max(0, Math.min(containerRect.width - 50, containerRect.width / 2 + posX));
+        posY = Math.max(0, Math.min(containerRect.height - 50, containerRect.height / 2 + posY));
 
-        requestAnimationFrame(animateCircle);
+        moveBlackCircle(posX, posY);
+    }
+
+    function moveBlackCircle(x, y) {
+        blackCircle.style.left = `${x}px`;
+        blackCircle.style.top = `${y}px`;
     }
 
     function checkWinCondition() {
@@ -64,18 +71,26 @@ document.addEventListener("DOMContentLoaded", () => {
         ) {
             message.textContent = "You Win!";
         } else {
-            message.textContent = "You Lose!";
+            message.textContent = "Try Again!";
         }
-
-        resetButton.style.display = "block";
     }
 
     function resetGame() {
         hasMoved = false;
-        blackCircle.style.left = "50%";
+        clearTimeout(moveTimer);
         message.textContent = "";
         resetButton.style.display = "none";
+        initializeBlackCircle();
+    }
+
+    function initializeBlackCircle() {
+        const initPosX = containerRect.width / 2 - 25;  // Center horizontally, subtracting half the circle's width
+        const initPosY = containerRect.height - 50;  // Position at bottom, subtracting the circle's height
+        blackCircle.style.left = `${initPosX}px`;
+        blackCircle.style.top = `${initPosY}px`;
     }
 
     resetButton.addEventListener('click', resetGame);
+
+    initializeBlackCircle();
 });
