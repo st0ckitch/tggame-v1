@@ -7,11 +7,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const containerRect = container.getBoundingClientRect();
     let hasMoved = false;
     let moveTimer = null;
+    let motionSupported = false;
+    let orientationSupported = false;
 
+    // Check for DeviceMotionEvent support
     if (window.DeviceMotionEvent) {
+        motionSupported = true;
         window.addEventListener('devicemotion', handleMotion);
     } else {
         alert("DeviceMotionEvent is not supported on your device.");
+    }
+
+    // Check for DeviceOrientationEvent support
+    if (window.DeviceOrientationEvent) {
+        orientationSupported = true;
+        window.addEventListener('deviceorientation', handleOrientation);
     }
 
     function handleMotion(event) {
@@ -28,10 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 resetButton.style.display = "block";
             }, 3000);
         }
-    }
-
-    if (window.DeviceOrientationEvent) {
-        window.addEventListener('deviceorientation', handleOrientation);
     }
 
     function handleOrientation(event) {
