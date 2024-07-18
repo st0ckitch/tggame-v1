@@ -2,9 +2,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const blackCircle = document.getElementById("black-circle");
     const yellowCircle = document.getElementById("yellow-circle");
     const message = document.getElementById("message");
+    const resetButton = document.getElementById("reset-button");
     const container = document.getElementById("game-container");
     const containerRect = container.getBoundingClientRect();
     let hasMoved = false;
+    let moveTimer = null;
 
     if (window.DeviceMotionEvent) {
         window.addEventListener('devicemotion', handleMotion);
@@ -16,16 +18,34 @@ document.addEventListener("DOMContentLoaded", () => {
         if (hasMoved) return;
 
         const acc = event.accelerationIncludingGravity;
-        const shakeThreshold = 5;
+        const shakeThreshold = 10;
 
         if (Math.abs(acc.x) > shakeThreshold || Math.abs(acc.y) > shakeThreshold || Math.abs(acc.z) > shakeThreshold) {
-            const posX = (containerRect.width / 2) + (acc.x * 5);
-            const posY = containerRect.height - (acc.y * 5) - 50;  // Subtracting 50 to place it correctly
-
-            moveBlackCircle(posX, posY);
-            checkWinCondition(posX, posY);
             hasMoved = true;
+            message.textContent = "Move the black circle!";
+            moveTimer = setTimeout(() => {
+                checkWinCondition();
+                resetButton.style.display = "block";
+            }, 3000);
         }
+    }
+
+    if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', handleOrientation);
+    }
+
+    function handleOrientation(event) {
+        if (!hasMoved) return;
+
+        const { beta, gamma } = event; // beta is for front-back, gamma is for left-right
+
+        let posX = (gamma / 90) * (containerRect.width / 2);
+        let posY = (beta / 90) * (containerRect.height / 2);
+
+        posX = Math.max(0, Math.min(containerRect.width - 50, containerRect.width / 2 + posX));
+        posY = Math.max(0, Math.min(containerRect.height - 50, containerRect.height / 2 + posY));
+
+        moveBlackCircle(posX, posY);
     }
 
     function moveBlackCircle(x, y) {
@@ -33,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
         blackCircle.style.top = `${y}px`;
     }
 
-    function checkWinCondition(x, y) {
+    function checkWinCondition() {
         const blackRect = blackCircle.getBoundingClientRect();
         const yellowRect = yellowCircle.getBoundingClientRect();
 
@@ -49,9 +69,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Initialize the black circle at the bottom center
-    const initPosX = containerRect.width / 2 - 25;  // Center horizontally, subtracting half the circle's width
-    const initPosY = containerRect.height - 50;  // Position at bottom, subtracting the circle's height
-    blackCircle.style.left = `${initPosX}px`;
-    blackCircle.style.top = `${initPosY}px`;
+    function resetGame() {
+        hasMoved = false;
+        clearTimeout(moveTimer);
+        message.textContent = "";
+        resetButton.style.display = "none";
+        initializeBlackCircle();
+    }
+
+    function initializeBlackCircle() {
+        const initPosX = containerRect.width / 2 - 25;  // Center horizontally, subtracting half the circle's width
+        const initPosY = containerRect.height - 50;  // Position at bottom, subtracting the circle's height
+        blackCircle.style.left = `${initPosX}px`;
+        blackCircle.style.top = `${initPosY}px`;
+    }
+
+    resetButton.addEventListener('click', resetGame);
+
+    initializeBlackCircle();
 });
