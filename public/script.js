@@ -48,8 +48,8 @@ document.addEventListener("DOMContentLoaded", () => {
         let posX = (gamma / 90) * (containerRect.width / 2);
         let posY = (beta / 90) * (containerRect.height / 2);
 
-        posX = Math.max(0, Math.min(containerRect.width - 50, containerRect.width / 2 + posX));
-        posY = Math.max(0, Math.min(containerRect.height - 50, containerRect.height / 2 + posY));
+        posX = Math.max(0, Math.min(containerRect.width - 100, containerRect.width / 2 + posX));
+        posY = Math.max(0, Math.min(containerRect.height - 100, containerRect.height / 2 + posY));
 
         moveBlackCircle(posX, posY);
     }
@@ -84,8 +84,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function initializeBlackCircle() {
-        const initPosX = containerRect.width / 2 - 25;  // Center horizontally, subtracting half the circle's width
-        const initPosY = containerRect.height - 50;  // Position at bottom, subtracting the circle's height
+        const initPosX = containerRect.width / 2 - 50;  // Center horizontally, subtracting half the circle's width
+        const initPosY = containerRect.height - 100;  // Position at bottom, subtracting the circle's height
         blackCircle.style.left = `${initPosX}px`;
         blackCircle.style.top = `${initPosY}px`;
     }
